@@ -5,13 +5,21 @@ import (
 	"sort"
 )
 
+var ErrKeyDoesNotExist = errors.New("key does not exist")
+var ErrEmptyStringKey = errors.New("An empty string is not a valid key")
+var ErrFullStore = errors.New("Store is full, no more keys can be stored")
+
+const DEFAULT_SIZE = 10
+
 type Store struct {
-	data map[string]string
+	data    map[string]string
+	maxSize int
 }
 
-func NewStore() *Store {
+func NewStore(maxSize int) *Store {
 	return &Store{
-		data: make(map[string]string),
+		data:    make(map[string]string, maxSize),
+		maxSize: maxSize,
 	}
 }
 
@@ -28,15 +36,29 @@ func (s *Store) Keys() []string {
 }
 
 func (s *Store) Get(key string) (string, error) {
-	val, ok := s.data[key]
-	if !ok {
-		return "", errors.New("Key does not exist")
+
+	if key == "" {
+		return "", ErrEmptyStringKey
 	}
+
+	val, ok := s.data[key]
+
+	if !ok {
+		return "", ErrKeyDoesNotExist
+	}
+
 	return val, nil
 }
 
-func (s *Store) Set(key, value string) {
+func (s *Store) Set(key, value string) error {
+
+	if s.IsFull() {
+		return ErrFullStore
+	}
+
 	s.data[key] = value
+
+	return nil
 }
 
 func (s *Store) Del(key string) {
@@ -45,4 +67,8 @@ func (s *Store) Del(key string) {
 
 func (s *Store) Len() int {
 	return len(s.data)
+}
+
+func (s *Store) IsFull() bool {
+	return len(s.data) == s.maxSize
 }

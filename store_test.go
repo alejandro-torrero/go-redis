@@ -6,7 +6,7 @@ import (
 )
 
 func TestKeys_ReturnsAllKeysSorted(t *testing.T) {
-	store := NewStore()
+	store := NewStore(10)
 	store.Set("a", "10")
 	store.Set("b", "20")
 
@@ -19,7 +19,7 @@ func TestKeys_ReturnsAllKeysSorted(t *testing.T) {
 }
 
 func TestKeys_EmptyStore(t *testing.T) {
-	store := NewStore()
+	store := NewStore(10)
 
 	// Dev comment for testing
 	// store.Set("test", "1")
@@ -31,21 +31,31 @@ func TestKeys_EmptyStore(t *testing.T) {
 	}
 }
 
+func TestKeys_EmptyKey(t *testing.T) {
+	store := NewStore(10)
+
+	_, err := store.Get("")
+
+	if err == nil {
+		t.Errorf("Store shouldnt accept empty strings as keys")
+	}
+}
+
 func TestSetGet_RoundTrip(t *testing.T) {
-	store := NewStore()
+	store := NewStore(10)
 
 	store.Set("test", "right-value")
 
-	val, _ := store.Get("test")
+	val, err := store.Get("test")
 
-	if val != "right-value" {
+	if val != "right-value" || err != nil {
 		t.Errorf("Failed to retrieve key from store")
 	}
 
 	// store.Set("missing-key", "missing")
-	val, _ = store.Get("missing-key")
+	val, err = store.Get("missing-key")
 
-	if val != "" {
+	if val != "" || err == nil {
 		t.Error("A value was retrieved from a missing key, failed")
 	}
 }
@@ -68,7 +78,7 @@ func TestDelete(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			// Create store
-			store := NewStore()
+			store := NewStore(10)
 
 			// Fill store
 			for k, v := range tc.setup {
@@ -86,5 +96,16 @@ func TestDelete(t *testing.T) {
 			}
 
 		})
+	}
+}
+
+func TestCapacity(t *testing.T) {
+	store := NewStore(1)
+	store.Set("key", "val")
+
+	err := store.Set("key2", "val2")
+
+	if err == nil {
+		t.Errorf("Store allowed more capacity than intended")
 	}
 }
