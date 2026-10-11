@@ -17,9 +17,10 @@ type Store struct {
 }
 
 func NewStore(maxSize int) *Store {
+
 	return &Store{
-		data:    make(map[string]string, maxSize),
-		maxSize: maxSize,
+		data:    make(map[string]string),
+		maxSize: maxSize, // 0 means unlimited
 	}
 }
 
@@ -52,7 +53,9 @@ func (s *Store) Get(key string) (string, error) {
 
 func (s *Store) Set(key, value string) error {
 
-	if s.IsFull() {
+	_, exists := s.Get(key)
+
+	if s.IsFull() && exists != nil {
 		return ErrFullStore
 	}
 
@@ -70,5 +73,9 @@ func (s *Store) Len() int {
 }
 
 func (s *Store) IsFull() bool {
-	return len(s.data) == s.maxSize
+	return s.maxSize != 0 && s.Len() == s.maxSize
+}
+
+func (s *Store) KeyValue() map[string]string {
+	return s.data
 }

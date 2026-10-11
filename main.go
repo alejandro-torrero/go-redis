@@ -5,15 +5,22 @@ import (
 )
 
 func main() {
-	store := NewStore(15)
+	store := NewStore(1)
 
-	store.Set("b", "20")
 	store.Set("a", "10")
+	err := store.Set("b", "20")
+	fmt.Println(err)
 
-	bVal, _ := store.Get("b")
 	aVal, _ := store.Get("a")
+	bVal, _ := store.Get("b")
 
 	fmt.Println(aVal)
 	fmt.Println(bVal)
+
+	store.Del("a")
+	store.Set("c", "30")
 	fmt.Println(store.Keys())
+
+	store.Set("c", "40")
+	fmt.Println(store.KeyValue())
 }

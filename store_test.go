@@ -108,4 +108,10 @@ func TestCapacity(t *testing.T) {
 	if err == nil {
 		t.Errorf("Store allowed more capacity than intended")
 	}
+
+	err = store.Set("key", "updated value")
+
+	if err != nil {
+		t.Errorf("Store didnt allow to update a key when full")
+	}
 }
