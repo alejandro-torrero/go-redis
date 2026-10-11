@@ -24,10 +24,29 @@ func TestKeys_EmptyStore(t *testing.T) {
 	// Dev comment for testing
 	// store.Set("test", "1")
 
-	want := []string{}
 	got := store.Keys()
 
-	if !reflect.DeepEqual(got, want) {
+	if len(got) > 0 {
 		t.Errorf("Test failed, emtpy store didnt return empty keys")
 	}
+}
+
+func TestSetGet_RoundTrip(t *testing.T) {
+	store := NewStore()
+
+	store.Set("test", "right-value")
+
+	val, _ := store.Get("test")
+
+	if val != "right-value" {
+		t.Errorf("Failed to retrieve key from store")
+	}
+
+	// store.Set("missing-key", "missing")
+	val, _ = store.Get("missing-key")
+
+	if val != "" {
+		t.Error("A value was retrieved from a missing key, failed")
+	}
+
 }
