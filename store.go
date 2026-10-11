@@ -36,3 +36,7 @@ func (s *Store) Set(key, value string) {
 func (s *Store) Del(key string) {
 	delete(s.data, key)
 }
+
+func (s *Store) Len() int {
+	return len(s.data)
+}
