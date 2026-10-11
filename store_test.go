@@ -81,7 +81,7 @@ func TestDelete(t *testing.T) {
 				t.Errorf("After delete(%q): Len() = %d, want %d", tc.deleteKey, got, tc.wantLen)
 			}
 
-			if _, ok := store.Get(tc.deleteKey); ok {
+			if _, ok := store.Get(tc.deleteKey); ok == nil {
 				t.Errorf("After delete(%q): Key still present", tc.deleteKey)
 			}
 
