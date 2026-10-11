@@ -48,5 +48,43 @@ func TestSetGet_RoundTrip(t *testing.T) {
 	if val != "" {
 		t.Error("A value was retrieved from a missing key, failed")
 	}
+}
 
+func TestDelete(t *testing.T) {
+	// Table driven test
+
+	tests := []struct {
+		name      string
+		setup     map[string]string
+		deleteKey string
+		wantLen   int
+	}{
+		{"deletes existing key", map[string]string{"a": "1", "b": "2", "c": "3"}, "a", 2},
+		{"no-op on missing key", map[string]string{"a": "1"}, "x", 1},
+		{"no-op on empty store", map[string]string{}, "x", 0},
+		{"deletes last remaining key", map[string]string{"only": "value"}, "only", 0},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			// Create store
+			store := NewStore()
+
+			// Fill store
+			for k, v := range tc.setup {
+				store.Set(k, v)
+			}
+
+			store.Del(tc.deleteKey)
+
+			if got := len(store.Keys()); got != tc.wantLen {
+				t.Errorf("After delete(%q): Len() = %d, want %d", tc.deleteKey, got, tc.wantLen)
+			}
+
+			if _, ok := store.Get(tc.deleteKey); ok {
+				t.Errorf("After delete(%q): Key still present", tc.deleteKey)
+			}
+
+		})
+	}
 }
