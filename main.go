@@ -11,10 +11,12 @@ import (
 )
 
 func main() {
-	kvStore := kv.NewStore(10)
 
-	val, err := SetEncryptedkey(kvStore, "a", "1")
+	store := CrateStorer()
+	val, err := SetEncryptedkey(store, "a", "1")
 	fmt.Println("Encoded", val)
+
+	store.Get("d")
 
 	ttlStore := ttl.NewTTLStore(50 * time.Millisecond)
 
@@ -27,6 +29,12 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
+}
+
+func CrateStorer() store.Storer {
+	kvStore := kv.NewStore(10)
+	logger := NewLoggerMiddleware(kvStore)
+	return logger
 }
 
 func SetEncryptedkey(store store.Storer, key, val string) (string, error) {
