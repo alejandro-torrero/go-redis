@@ -12,11 +12,12 @@ import (
 
 func main() {
 
-	store := CrateStorer()
-	val, err := SetEncryptedkey(store, "a", "1")
+	s := CrateStorer()
+	mm := NewMetricsMiddleware(s)
+	val, err := SetEncryptedkey(mm, "a", "1")
 	fmt.Println("Encoded", val)
 
-	store.Get("d")
+	mm.Get("d")
 
 	ttlStore := ttl.NewTTLStore(50 * time.Millisecond)
 
@@ -26,9 +27,11 @@ func main() {
 	time.Sleep(1 * time.Second)
 
 	_, err = ttlStore.Get("a")
+
 	if err != nil {
 		fmt.Println(err)
 	}
+	mm.Report()
 }
 
 func CrateStorer() store.Storer {
