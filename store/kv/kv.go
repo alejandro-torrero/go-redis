@@ -1,10 +1,12 @@
-package main
+package kv
 
 import (
+	"encoding/base64"
 	"errors"
 	"sort"
 )
 
+// Sentinel errors
 var ErrKeyDoesNotExist = errors.New("key does not exist")
 var ErrEmptyStringKey = errors.New("An empty string is not a valid key")
 var ErrFullStore = errors.New("Store is full, no more keys can be stored")
@@ -62,6 +64,17 @@ func (s *Store) Set(key, value string) error {
 	s.data[key] = value
 
 	return nil
+}
+
+// Is not actually encrypted, but saved in base 64
+func (s *Store) SetEncrypted(key, value string) (string, error) {
+	encoded := base64.StdEncoding.EncodeToString([]byte(value))
+
+	if err := s.Set(key, encoded); err != nil {
+		return "", err
+	}
+
+	return s.Get(key)
 }
 
 func (s *Store) Del(key string) {

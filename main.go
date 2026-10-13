@@ -1,26 +1,39 @@
 package main
 
 import (
+	"encoding/base64"
 	"fmt"
+	"time"
+
+	"github.com/go-redis/store"
+	"github.com/go-redis/store/kv"
+	"github.com/go-redis/store/ttl"
 )
 
 func main() {
-	store := NewStore(1)
+	kvStore := kv.NewStore(10)
 
-	store.Set("a", "10")
-	err := store.Set("b", "20")
-	fmt.Println(err)
+	val, err := SetEncryptedkey(kvStore, "a", "1")
+	fmt.Println("Encoded", val)
 
-	aVal, _ := store.Get("a")
-	bVal, _ := store.Get("b")
+	ttlStore := ttl.NewTTLStore(50 * time.Millisecond)
 
-	fmt.Println(aVal)
-	fmt.Println(bVal)
+	SetEncryptedkey(ttlStore, "a", "1")
+	println(ttlStore.Get("a"))
 
-	store.Del("a")
-	store.Set("c", "30")
-	fmt.Println(store.Keys())
+	time.Sleep(1 * time.Second)
 
-	store.Set("c", "40")
-	fmt.Println(store.KeyValue())
+	_, err = ttlStore.Get("a")
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
+func SetEncryptedkey(store store.Storer, key, val string) (string, error) {
+	encoded := base64.StdEncoding.EncodeToString([]byte(val))
+
+	if err := store.Set(key, encoded); err != nil {
+		return "", err
+	}
+	return store.Get(key)
 }
