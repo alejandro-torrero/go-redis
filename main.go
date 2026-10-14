@@ -9,53 +9,24 @@ import (
 )
 
 func main() {
+	s := kv.NewStore(0)
 
-	// s := CrateStorer()
-	// mm := NewMetricsMiddleware(s)
-	// val, err := SetEncryptedkey(mm, "a", "1")
-	// fmt.Println("Encoded", val)
+	s.Set("pageViews", "0")
 
-	// mm.Get("d")
+	const hits = 1000
 
-	// ttlStore := ttl.NewTTLStore(50 * time.Millisecond)
-
-	// SetEncryptedkey(ttlStore, "a", "1")
-	// println(ttlStore.Get("a"))
-
-	// time.Sleep(1 * time.Second)
-
-	// _, err = ttlStore.Get("a")
-
-	// if err != nil {
-	// 	fmt.Println(err)
-	// }
-	// mm.Report()
-
-	// kv := kv.NewStore(10)
-
-	// PopulateDefaults(kv)
-
-	// nKv := kv.Clone()
-	// nKv.Set("env", "prod")
-
-	// fmt.Println(kv)
-	// fmt.Println(nKv)
-
-	cmds := []Command{
-		{Op: "SET", Key: "env", Value: "production"},
-		{Op: "SET", Key: "version", Value: "0.0.1"},
-		{Op: "SET", Key: "debug", Value: "true"},
-		{Op: "GET", Key: "env"},
-		{Op: "SET", Key: "region", Value: "us-west-1"},
-		{Op: "GET", Key: "version"},
+	cmds := make([]Command, hits)
+	for i := range cmds {
+		cmds[i] = Command{Op: "INCR", Key: "pageViews"}
 	}
-
-	s := kv.NewStore(10)
 
 	RestoreOnBoot(s, cmds)
 
-	fmt.Println("Restored, store size: ", s.Len())
-	fmt.Println("Keys", s.Keys())
+	got, _ := s.Get("pageViews")
+
+	fmt.Println("expected: ", hits)
+	fmt.Println("got: ", got)
+
 }
 
 func CrateStorer() store.Storer {

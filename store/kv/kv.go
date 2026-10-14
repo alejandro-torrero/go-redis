@@ -1,9 +1,11 @@
 package kv
 
 import (
-	"encoding/base64"
 	"errors"
+	"fmt"
 	"sort"
+	"strconv"
+	"sync"
 	"time"
 )
 
@@ -15,6 +17,7 @@ var ErrFullStore = errors.New("Store is full, no more keys can be stored")
 const DEFAULT_SIZE = 10
 
 type Store struct {
+	mu      sync.Mutex
 	data    map[string]string
 	maxSize int
 }
@@ -45,6 +48,9 @@ func (s *Store) Get(key string) (string, error) {
 		return "", ErrEmptyStringKey
 	}
 
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	val, ok := s.data[key]
 
 	if !ok {
@@ -56,9 +62,12 @@ func (s *Store) Get(key string) (string, error) {
 
 func (s *Store) Set(key, value string) error {
 
-	_, exists := s.Get(key)
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
-	if s.IsFull() && exists != nil {
+	_, exists := s.data[key]
+
+	if s.IsFull() && exists {
 		return ErrFullStore
 	}
 
@@ -68,27 +77,22 @@ func (s *Store) Set(key, value string) error {
 	return nil
 }
 
-// Is not actually encrypted, but saved in base 64
-func (s *Store) SetEncrypted(key, value string) (string, error) {
-	encoded := base64.StdEncoding.EncodeToString([]byte(value))
-
-	if err := s.Set(key, encoded); err != nil {
-		return "", err
-	}
-
-	return s.Get(key)
-}
-
 func (s *Store) Del(key string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	delete(s.data, key)
 }
 
 func (s *Store) Len() int {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	return len(s.data)
 }
 
 func (s *Store) IsFull() bool {
-	return s.maxSize != 0 && s.Len() == s.maxSize
+	return s.maxSize != 0 && len(s.data) == s.maxSize
 }
 
 func (s *Store) KeyValue() map[string]string {
@@ -96,6 +100,9 @@ func (s *Store) KeyValue() map[string]string {
 }
 
 func (s *Store) Clone() *Store {
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
 	cp := &Store{
 		data:    make(map[string]string, len(s.data)),
@@ -107,4 +114,30 @@ func (s *Store) Clone() *Store {
 	}
 
 	return cp
+}
+
+func (s *Store) Incr(key string) (int, error) {
+	if key == "" {
+		return 0, ErrEmptyStringKey
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	current := 0
+
+	if val, ok := s.data[key]; ok {
+		v, err := strconv.Atoi(val)
+		if err != nil {
+			return 0, fmt.Errorf("INCR %q: %w", key, err)
+		}
+		current = v
+	}
+
+	current++
+	time.Sleep(time.Millisecond)
+
+	s.data[key] = strconv.Itoa(current)
+
+	return current, nil
 }

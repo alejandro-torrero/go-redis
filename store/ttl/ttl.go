@@ -72,3 +72,7 @@ func (s *TTLStore) Keys() []string {
 
 	return keys
 }
+
+func (t *TTLStore) Incr(key string) (int, error) {
+	return 0, nil
+}

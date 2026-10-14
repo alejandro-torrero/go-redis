@@ -51,3 +51,7 @@ func (l *LoggingMiddleware) Len() int {
 	l.logger.Printf("Len %v", got)
 	return got
 }
+
+func (l *LoggingMiddleware) Incr(key string) (int, error) {
+	return 0, nil
+}
