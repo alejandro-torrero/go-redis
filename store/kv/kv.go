@@ -92,3 +92,17 @@ func (s *Store) IsFull() bool {
 func (s *Store) KeyValue() map[string]string {
 	return s.data
 }
+
+func (s *Store) Clone() *Store {
+
+	cp := &Store{
+		data:    make(map[string]string, len(s.data)),
+		maxSize: s.maxSize,
+	}
+
+	for k, v := range s.data {
+		cp.data[k] = v
+	}
+
+	return cp
+}

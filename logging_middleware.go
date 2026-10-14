@@ -48,6 +48,6 @@ func (l *LoggingMiddleware) Del(key string) {
 func (l *LoggingMiddleware) Len() int {
 
 	got := l.inner.Len()
-	l.logger.Printf("Len %q", got)
+	l.logger.Printf("Len %v", got)
 	return got
 }
