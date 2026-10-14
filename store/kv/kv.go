@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"sort"
+	"time"
 )
 
 // Sentinel errors
@@ -63,6 +64,7 @@ func (s *Store) Set(key, value string) error {
 
 	s.data[key] = value
 
+	time.Sleep(1 * time.Second)
 	return nil
 }
 

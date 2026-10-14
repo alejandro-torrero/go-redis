@@ -31,15 +31,31 @@ func main() {
 	// }
 	// mm.Report()
 
-	kv := kv.NewStore(10)
+	// kv := kv.NewStore(10)
 
-	PopulateDefaults(kv)
+	// PopulateDefaults(kv)
 
-	nKv := kv.Clone()
-	nKv.Set("env", "prod")
+	// nKv := kv.Clone()
+	// nKv.Set("env", "prod")
 
-	fmt.Println(kv)
-	fmt.Println(nKv)
+	// fmt.Println(kv)
+	// fmt.Println(nKv)
+
+	cmds := []Command{
+		{Op: "SET", Key: "env", Value: "production"},
+		{Op: "SET", Key: "version", Value: "0.0.1"},
+		{Op: "SET", Key: "debug", Value: "true"},
+		{Op: "GET", Key: "env"},
+		{Op: "SET", Key: "region", Value: "us-west-1"},
+		{Op: "GET", Key: "version"},
+	}
+
+	s := kv.NewStore(10)
+
+	RestoreOnBoot(s, cmds)
+
+	fmt.Println("Restored, store size: ", s.Len())
+	fmt.Println("Keys", s.Keys())
 }
 
 func CrateStorer() store.Storer {
