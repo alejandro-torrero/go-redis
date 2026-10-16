@@ -17,7 +17,7 @@ var ErrFullStore = errors.New("Store is full, no more keys can be stored")
 const DEFAULT_SIZE = 10
 
 type Store struct {
-	mu      sync.Mutex
+	mu      sync.RWMutex
 	data    map[string]string
 	maxSize int
 }
@@ -48,8 +48,10 @@ func (s *Store) Get(key string) (string, error) {
 		return "", ErrEmptyStringKey
 	}
 
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	time.Sleep(time.Millisecond)
 
 	val, ok := s.data[key]
 
@@ -85,8 +87,8 @@ func (s *Store) Del(key string) {
 }
 
 func (s *Store) Len() int {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 
 	return len(s.data)
 }
@@ -101,8 +103,8 @@ func (s *Store) KeyValue() map[string]string {
 
 func (s *Store) Clone() *Store {
 
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 
 	cp := &Store{
 		data:    make(map[string]string, len(s.data)),

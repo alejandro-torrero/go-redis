@@ -3,29 +3,38 @@ package main
 import (
 	"encoding/base64"
 	"fmt"
+	"sync"
+	"time"
 
 	"github.com/go-redis/store"
 	"github.com/go-redis/store/kv"
 )
 
+// Mutex 1.14s
+// RWMutex 12 ms
+
 func main() {
 	s := kv.NewStore(0)
 
-	s.Set("pageViews", "0")
+	s.Set("name", "jane")
 
-	const hits = 1000
+	const readers = 100
+	const readsEach = 10
 
-	cmds := make([]Command, hits)
-	for i := range cmds {
-		cmds[i] = Command{Op: "INCR", Key: "pageViews"}
+	start := time.Now()
+
+	var wg sync.WaitGroup
+	for range readers {
+		wg.Go(func() {
+			for range readsEach {
+				s.Get("name")
+			}
+		})
 	}
 
-	RestoreOnBoot(s, cmds)
+	wg.Wait()
 
-	got, _ := s.Get("pageViews")
-
-	fmt.Println("expected: ", hits)
-	fmt.Println("got: ", got)
+	fmt.Printf("%d readers did %d concurrent reads in %s\n", readers, readsEach, time.Since(start).Round(time.Millisecond))
 
 }
 
